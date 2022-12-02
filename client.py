@@ -66,7 +66,7 @@ BORG_ENV = {
 # Empty configuration structure.
 # Must contain all the keys that might be accessed but need not contain any
 # values.
-EMPTY_CONFIG = {
+DEFAULT_CONFIG = {
     'epoch': 0,
     'server': {
         'host': DEFAULT_SERVER_IP,
@@ -79,10 +79,12 @@ EMPTY_CONFIG = {
             'script': 'updates/00-no_op.sh',
         }
     ],
-    'archive_name_format': None,
-    'backup_times': [],
-    'backup_time_window_length_in_minutes': None,
-    'backup_paths': None,
+    'archive_name_format': '{now}',
+    'backup_times': [
+        '@before:shutdown.target'
+    ],
+    'backup_time_randomized_delay': '2min',
+    'backup_paths': ['~/Desktop'],
     'backup_user': 'pi',
 }
 
@@ -366,7 +368,7 @@ def drop_privileges_to(uid, gid):
 
 
 def main():
-    global EMPTY_CONFIG, rsh
+    global DEFAULT_CONFIG, rsh
 
     # Attempt to load stored configuration file
     try:
@@ -377,13 +379,13 @@ def main():
     try:
         with open(stored_config_path, 'r') as file:
             stored_config = json.load(file)
-            fill_struct_with_defaults(stored_config, EMPTY_CONFIG)
+            fill_struct_with_defaults(stored_config, DEFAULT_CONFIG)
     except FileNotFoundError:
         warn('No stored configuration file found.')
-        stored_config = EMPTY_CONFIG
+        stored_config = DEFAULT_CONFIG
     except ValueError:
         warn('Stored configuration contains invalid JSON. Ignoring it.')
-        stored_config = EMPTY_CONFIG
+        stored_config = DEFAULT_CONFIG
 
     # Find backup server parameters
     server_host = stored_config['server']['host']
@@ -398,7 +400,7 @@ def main():
         response.raise_for_status()
         config_json = response.text
         config = response.json()
-        fill_struct_with_defaults(config, EMPTY_CONFIG)
+        fill_struct_with_defaults(config, DEFAULT_CONFIG)
     except ConnectionError as err:
         die('Connection to configuration server failed:', err)
     except HTTPError as err:
