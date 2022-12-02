@@ -426,6 +426,7 @@ def main():
 
     # If fetched config is newer, apply and store it
     if config['epoch'] > stored_config['epoch']:
+        log('Applying new configuration...')
         apply_config(config, stored_config)
         store_config(config_json, stored_config_path)
 
