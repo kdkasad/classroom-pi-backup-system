@@ -582,7 +582,7 @@ There is relatively little network setup required. The only criterion is that th
 
 Follow the two steps below to do so.
 
-- ****************************************************************************Identify desired network configuration****************************************************************************
+- **Identify desired network configuration**
     
     First, identify the network interface that is connected to the same network as the nodes. Run the following command on the backup server.
     
@@ -607,7 +607,7 @@ Follow the two steps below to do so.
     
     Take note of the network interface name and the IP address. We’ll use these in the next step. If you have another IP address you want to assign instead, use that.
     
-- ******************************************Configure `dhcpcd(8)`**
+- **Configure `dhcpcd(8)`**
     
     On the backup server, edit the file `/etc/dhcpcd.conf`. This will require root permissions. Insert the following lines at the bottom of the file. Replace the placeholders with the values from the last step.
     
@@ -627,10 +627,10 @@ Follow the two steps below to do so.
 
 ## Classroom setup instructions
 
-<aside>
+<p style="display:block;padding:1em;border-radius:8px;background-color:#00000008;">
 ⚠️ This section is specific to the classroom that the system was designed for. It may need to be adapted for use in other classrooms.
-</aside>
+</p>
 
 To set up the Raspberry Pi backup system for the classroom, [follow the steps above](https://www.notion.so/Raspberry-Pi-Backup-System-599ef1eacbc44781ae3d198d03363775) to set up a backup server and ensure the network settings are [configured properly](https://www.notion.so/Raspberry-Pi-Backup-System-599ef1eacbc44781ae3d198d03363775). Then edit the configuration file as required. Once that is done, have each student follow the instructions on the following page:
 
-[Node setup instructions](https://www.notion.so/Node-setup-instructions-367beefc48794fc5a2a9df8e03b53a93)
+[Node setup instructions](https://kasad.notion.site/Node-setup-instructions-367beefc48794fc5a2a9df8e03b53a93)
