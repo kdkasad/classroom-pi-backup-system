@@ -25,7 +25,7 @@
 		"Wed 11:50",
 		"Wed 14:00"
 	],
-	"backup_time_window_length_in_minutes": 2,
+	"backup_time_randomized_delay": "2min",
 
 	"backup_paths": [
 		"/home/pi/Desktop"

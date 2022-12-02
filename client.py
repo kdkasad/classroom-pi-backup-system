@@ -143,6 +143,12 @@ def apply_config(config, prev_config):
     try:
         with open(TIMER_DROPIN_PATH, 'w') as times:
             print('[Timer]', 'OnCalendar=', sep='\n', file=times)
+            # Print randomized delay setting
+            # TODO: check validity using systemd-analyze
+            print('RandomizedDelaySec=',
+                  config['backup_time_randomized_delay'])
+
+            # Print times
             for time in config['backup_times']:
                 if time.startswith('@'):
                     entry = time.split(':')
@@ -155,6 +161,9 @@ def apply_config(config, prev_config):
     except OSError as err:
         die('Failed to save trigger times to ',
             TIMER_DROPIN_PATH, ': ', err, sep='')
+
+    # Set triggers for backup.service
+    # See systemd.service(5) and systemd.unit(5) for details
     if trigger_times:
         unit_entries = []
         install_entries = []
