@@ -195,7 +195,8 @@ def apply_update(server, epoch, script_name):
     try:
         response = requests.get(uri)
         script = response.text
-        status = subprocess.run('/bin/sh', input=script, text=True, check=True)
+        status = subprocess.run(
+            '/bin/bash', input=script, text=True, check=True)
     except CalledProcessError as err:
         die(f"Update #{epoch}'s script returned non-zero exit status {err.returncode}")
     except ConnectionError as err:
