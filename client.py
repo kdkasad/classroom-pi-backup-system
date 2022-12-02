@@ -219,8 +219,7 @@ def do_backup(config, ssh_key, is_retry=False):
     server_ip = config['server']['host']
     sshd_port = config['server']['sshd_port']
 
-    hostname = socket.gethostname()
-    repo_uri = f'ssh://backup@{server_ip}:{sshd_port}/~/repos/{hostname}'
+    repo_uri = f'ssh://backup@{server_ip}:{sshd_port}/~/repos/' + '{hostname}'
     archive_path = repo_uri + '::' + config['archive_name_format']
 
     cmd = [
