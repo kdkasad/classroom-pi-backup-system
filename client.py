@@ -190,7 +190,7 @@ def apply_config(config, prev_config):
 
     # Reload systemd
     try:
-        cmd = ['/usr/bin/systemctl', '--no-ask-password']
+        cmd = ['/usr/bin/systemctl', '--no-ask-password', 'daemon-reload']
         subprocess.run(cmd, check=True)
     except CalledProcessError as err:
         warn('Failed to reload systemd. Continuing anyways...')
