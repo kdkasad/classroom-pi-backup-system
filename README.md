@@ -1,4 +1,4 @@
-# Raspberry Pi Backup System
+# Raspberry Pi Backup System for Classrooms
 
 Note: This README is generated from the original article located at <https://kasad.notion.site/Raspberry-Pi-Backup-System-599ef1eacbc44781ae3d198d03363775>.
 Content may be outdated or improperly formatted. See the original instead.
