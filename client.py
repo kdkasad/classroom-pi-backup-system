@@ -142,13 +142,14 @@ def apply_config(config, prev_config):
     trigger_times = []
     try:
         with open(TIMER_DROPIN_PATH, 'w') as times:
-            print('[Timer]', 'OnCalendar=', sep='\n', file=times)
+            print('[Timer]', file=times)
             # Print randomized delay setting
             # TODO: check validity using systemd-analyze
             print('RandomizedDelaySec=',
-                  config['backup_time_randomized_delay'], file=times)
+                  config['backup_time_randomized_delay'], sep='', file=times)
 
             # Print times
+            print('OnCalendar=', file=times)
             for time in config['backup_times']:
                 if time.startswith('@'):
                     entry = time.split(':')
