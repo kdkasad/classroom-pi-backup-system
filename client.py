@@ -240,7 +240,7 @@ def do_backup(config, ssh_key, is_retry=False):
     ]
 
     # Run Borg
-    proc = subprocess.run(cmd, env=BORG_ENV, capture_output=True)
+    proc = subprocess.run(cmd, env=BORG_ENV, capture_output=True, text=True)
 
     # Process log messages
     repo_doesnt_exist = False
@@ -295,7 +295,7 @@ def create_repo(uri, ssh_key):
     ]
 
     # Run Borg
-    proc = subprocess.run(cmd, env=BORG_ENV, capture_output=True)
+    proc = subprocess.run(cmd, env=BORG_ENV, capture_output=True, text=True)
 
     # Process log messages
     errors = []
