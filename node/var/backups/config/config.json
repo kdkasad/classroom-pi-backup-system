@@ -1,0 +1,33 @@
+{
+	"epoch": 1,
+
+	"server": {
+		"host": "",
+		"httpd_port": 36888,
+		"sshd_port": 22
+	},
+
+	"updates": [
+		{
+			"epoch": 0,
+			"script": "updates/00-no_op.sh"
+		}
+	],
+
+	"archive_name_format": "{now}",
+
+	"backup_times": [
+		"@before:shutdown.target",
+		"Mon,Tue,Thu,Fri 10:00",
+		"Mon,Tue,Thu,Fri 11:50",
+		"Mon,Tue,Thu,Fri 14:30",
+		"Wed 10:00",
+		"Wed 11:50",
+		"Wed 14:00"
+	],
+	"backup_time_window_length_in_minutes": 2,
+
+	"backup_paths": [
+		"/home/pi/Desktop"
+	]
+}

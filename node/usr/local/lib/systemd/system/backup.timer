@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer for backup service
+
+[Timer]
+Unit=backup.service
+WakeSystem=on
+
+[Install]
+WantedBy=timers.target
