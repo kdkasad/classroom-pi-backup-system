@@ -48,6 +48,8 @@ change_hostname() {
 	# writes the new name to /etc/hostname then updates the live hostname using
 	# hostname(1) or /proc/sys/kernel/hostname.
 	printf "\033[1;34mInfo:\033[m Setting new hostname to '%s'.\n" "$response" >&2
+	sed -i "/^127\.0\.[01]\.1\s\+$(hostname)\s*$/d" /etc/hosts
+	printf '127.0.1.1\t%s\n' "$response" >> /etc/hosts
 	if ! \
 		hostnamectl --no-ask-password --static --pretty hostname "$response" \
 			2>/dev/null
