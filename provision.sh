@@ -71,8 +71,8 @@ fi
 
 # Install required packages
 apt-get update -qq
-apt-get install --no-install-recommends -qq 
-	borgbackup openssh-client python3 python3-requests
+apt-get install --no-install-recommends -qq \
+	borgbackup openssh-client python3 python3-requests curl
 
 # Create systemd parent directories
 install -d -m 755 \
