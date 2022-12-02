@@ -112,7 +112,7 @@ def apply_config(config, prev_config):
         try:
             update = [update for update in config['updates']
                       if update['epoch'] == i][0]
-            apply_update(config['server'], update['script'])
+            apply_update(config['server'], i, update['script'])
         except IndexError:
             pass
 
@@ -161,12 +161,11 @@ def apply_config(config, prev_config):
 
 def apply_update(server, epoch, script_name):
     log('Attempting to apply update #', epoch, '...', sep='')
-    uri = 'http://' + server['host'] + ':' + \
-        server['httpd_port'] + '/' + script_name
+    uri = f"http://{server['host']}:{server['httpd_port']}/{script_name}"
     try:
         response = requests.get(uri)
         script = response.text
-        status = subprocess.run('/bin/sh', input=script, check=True)
+        status = subprocess.run('/bin/sh', input=script, text=True, check=True)
     except CalledProcessError as err:
         die(f"Update #{epoch}'s script returned non-zero exit status {err.returncode}")
     except ConnectionError as err:
