@@ -160,6 +160,7 @@ def apply_config(config, prev_config):
 
 
 def apply_update(server, epoch, script_name):
+    log('Attempting to apply update #', epoch, '...', sep='')
     uri = 'http://' + server['host'] + ':' + \
         server['httpd_port'] + '/' + script_name
     try:
