@@ -146,7 +146,7 @@ def apply_config(config, prev_config):
             # Print randomized delay setting
             # TODO: check validity using systemd-analyze
             print('RandomizedDelaySec=',
-                  config['backup_time_randomized_delay'])
+                  config['backup_time_randomized_delay'], file=times)
 
             # Print times
             for time in config['backup_times']:
