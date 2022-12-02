@@ -27,6 +27,7 @@
 	],
 	"backup_time_randomized_delay": "2min",
 
+	"backup_user": "pi",
 	"backup_paths": [
 		"/home/pi/Desktop"
 	]
