@@ -188,6 +188,13 @@ def apply_config(config, prev_config):
             die('Failed to save triggers to ',
                 SERVICE_DROPIN_PATH, ': ', err, sep='')
 
+    # Reload systemd
+    try:
+        cmd = ['/usr/bin/systemctl', '--no-ask-password']
+        subprocess.run(cmd, check=True)
+    except CalledProcessError as err:
+        warn('Failed to reload systemd. Continuing anyways...')
+
 
 def apply_update(server, epoch, script_name):
     log('Attempting to apply update #', epoch, '...', sep='')
