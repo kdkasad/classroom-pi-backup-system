@@ -154,7 +154,7 @@ umask 022
 
 # Reload systemd and enable units
 systemctl daemon-reload
-systemctl enable backup.timer
 systemctl enable --now backup.service
+systemctl enable --now backup.timer
 
 exit 0
