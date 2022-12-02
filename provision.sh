@@ -129,6 +129,8 @@ Description=Timer for backup service
 [Timer]
 Unit=backup.service
 WakeSystem=on
+OnCalendar=00:00
+AccuracySec=15sec
 
 [Install]
 WantedBy=timers.target
