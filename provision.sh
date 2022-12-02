@@ -1,7 +1,12 @@
 #!/bin/sh
 
+# Change the following two lines to match your backup server
 SERVER_IP='10.205.8.217'
 SERVER_PORT=36888
+
+### Do not change anything below this line ###
+
+HOSTNAME_PATTERN='[A-Z0-9][A-Z0-9\-]*'
 
 # Set new hostname given by user
 change_hostname() {
@@ -9,14 +14,14 @@ change_hostname() {
 
 	# Prompt user for new hostname
 	printf 'Enter a new hostname: ' >&2
-	IFS='' read -r response
+	# Read from /dev/tty as stdin might be a pipe
+	IFS='' read -r response < /dev/tty
 	until
-		printf '%s' "$response" | grep -ixq '[A-Z0-9][A-Z0-9\-]*'
+		printf '%s' "$response" | grep -ixq "$HOSTNAME_PATTERN"
 	do
 		printf '\033[1;31mError:\033[m %s %s\n' 'Invalid hostname.' \
 			'The hostname may only contain letters, numbers, and hyphens.'
 		printf 'Ente a new hostname: ' >&2
-		# Read from /dev/tty as stdin might be a pipe
 		IFS='' read -r response < /dev/tty
 	done
 
@@ -56,11 +61,11 @@ fi
 hostname="$(hostname)"
 if [ "$hostname" = "raspberrypi" ]
 then
-	printf "\033[1;33mWarning:\033[m You're using the defualt hostname '%s'.\n" "$hostname" >&2
+	printf "\033[1;33mWarning:\033[m You're using the default hostname '%s'.\n" "$hostname" >&2
 	change_hostname
-elif [ "${hostname+x}" = x ]
+elif ! printf '%s' "$hostname" | grep -ixq "$HOSTNAME_PATTERN"
 then
-	printf "\033[1;33mWarning:\033[m No hostname detected.\n" >&2
+	printf "\033[1;33mWarning:\033[m Invalid or no hostname detected.\n" >&2
 	change_hostname
 fi
 
