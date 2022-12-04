@@ -9,10 +9,8 @@ User=backup
 Group=backup
 WorkingDirectory=~
 EnvironmentFile=/var/backups/config/config_server_settings.env
-ExecStart=/usr/bin/webfsd -F -j -c 50 -p ${PORT} -R ${CONFIG_SERVER_DATA_ROOT}
+ExecStart=/usr/bin/webfsd -F -j -c 50 -p ${PORT} -r ${CONFIG_SERVER_DATA_ROOT}
 Type=exec
-AmbientCapabilities=CAP_SYS_CHROOT
-CapabilityBoundingSet=CAP_SYS_CHROOT
 
 [Install]
 WantedBy=default.target
