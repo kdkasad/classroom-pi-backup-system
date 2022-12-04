@@ -112,10 +112,11 @@ fi
 # Install required packages
 info 'Downloading package information...'
 info 'This may take a while.'
-apt-get -qq update
+DEBIAN_FRONTEND=noninteractive apt-get -qq update
 info 'Installing required packages...'
 info 'This may take a while.'
-apt-get -qq install --no-install-recommends \
+DEBIAN_FRONTEND=noninteractive \
+	apt-get -qq install --no-install-recommends \
 	borgbackup openssh-client python3 python3-requests curl bash
 
 info 'Creating systemd units...'
