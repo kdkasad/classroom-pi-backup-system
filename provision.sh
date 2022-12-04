@@ -165,19 +165,17 @@ echo '[Timer]' > /etc/systemd/system/backup.timer.d/00-times.conf
 
 # Download SSH key
 info 'Downloading & installing SSH key...'
-umask 022
 install -d -m 755 /usr/local/share/backup_client
 curl -fsSL "http://$SERVER_IP:$SERVER_PORT/setup/node_key" \
 	> /usr/local/share/backup_client/ssh_key
+chmod 0400 /usr/local/share/backup_client/ssh_key
 
 # Download client script
 info 'Downloading & installing client script...'
 install -d -m 755 /usr/local/lib
-umask 027
 curl -fsSL "http://$SERVER_IP:$SERVER_PORT/setup/client.py" \
 	> /usr/local/lib/backup_client.py
 chmod 750 /usr/local/lib/backup_client.py
-umask 022
 
 # Reload systemd and enable units
 info 'Reloading systemd configuration...'
