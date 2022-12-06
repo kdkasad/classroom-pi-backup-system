@@ -118,6 +118,12 @@ def fill_struct_with_defaults(source, default):
             source[key] = value
 
 
+def time_is_valid(time):
+    cmd = ['/usr/bin/systemd-analyze', 'calendar', time]
+    proc = subprocess.run(cmd, stdout=DEVNULL, stderr=DEVNULL)
+    return proc.returncode == 0
+
+
 def apply_config(config, prev_config):
     # Apply updates from updates list
     current_update_epoch = max(
@@ -150,9 +156,10 @@ def apply_config(config, prev_config):
             for time in config['backup_times']:
                 if time == '@shutdown':
                     enable_on_shutdown = True
-                else:
-                    # TODO: check validity using systemd-analyze(1)
+                elif time_is_valid(time):
                     print('OnCalendar=', time, sep='', file=times)
+                else:
+                    warn(f"Time specifier '{time}' is invalid. Ignoring it...")
     except OSError as err:
         die('Failed to save trigger times to ',
             TIMER_DROPIN_PATH, ': ', err, sep='')
