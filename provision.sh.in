@@ -129,39 +129,21 @@ install -d -m 755 \
 # Create backup service unit
 umask 022
 cat <<- 'EOF' > /usr/local/lib/systemd/system/backup.service
-[Unit]
-Description=Back up user files
-Requires=network-online.target network.target
-After=network-online.target network.target
-
-[Service]
-StateDirectory=backup_client
-Type=oneshot
-ExecStart=/usr/local/lib/backup_client.py
+m4_include(`node/usr/local/lib/systemd/system/backup.service')
 EOF
 
 cat <<- 'EOF' > /etc/systemd/system/backup.service.d/00-triggers.conf
-[Unit]
-Before=shutdown.target
-[Install]
-WantedBy=shutdown.target
+m4_include(`node/etc/systemd/system/backup.service.d/00-triggers.conf')
 EOF
 
 # Create backup timer unit
 cat <<- 'EOF' > /usr/local/lib/systemd/system/backup.timer
-[Unit]
-Description=Timer for backup service
-
-[Timer]
-Unit=backup.service
-OnCalendar=00:00
-AccuracySec=15sec
-
-[Install]
-WantedBy=timers.target
+m4_include(`node/usr/local/lib/systemd/system/backup.timer')
 EOF
 
-echo '[Timer]' > /etc/systemd/system/backup.timer.d/00-times.conf
+cat <<- 'EOF' > /etc/systemd/system/backup.timer.d/00-times.conf
+m4_include(`node/etc/systemd/system/backup.timer.d/00-times.conf')
+EOF
 
 # Download SSH key
 info 'Downloading & installing SSH key...'
