@@ -42,7 +42,7 @@ all: $(TARGETS)
 
 .PHONY: clean
 clean: $(TARGETS)
-	@printf 'RM\t%s\n' '$@'
+	for file in $^; do printf 'RM\t%s\n' "$$file"; done
 	$(RM) -f $^
 
 # Rule to run *.sh.in through M4 to get *.sh
