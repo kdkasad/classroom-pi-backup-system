@@ -1,2 +1,3 @@
 provision.sh
 client.py
+server/var/backups/config/config_server_settings.env
