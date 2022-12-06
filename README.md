@@ -9,6 +9,20 @@ article linked below:
 
 The rest of the README file documents only the files in this repository.
 
+## Building
+
+The provisioning script (`provision.sh`) and the client script (`client.py`)
+both contain the initial server IP address and HTTPd port. To make this easier
+to configure, we generate these files using [GNU
+M4](https://www.gnu.org/software/m4/) to expand macros in source files. The macros' values are derived from `config.mk`.
+
+To build the scripts,
+1. Change the settings in `config.mk` as necessary.
+2. Then run the command `make` to generate `provision.sh` and `client.py`.
+
+The provisioning script must also contain the contents of some of the
+files in the `node` directory. This is also handled by M4 and the `Makefile`.
+
 ## Repository structure
 
 The repository is sectioned into three main segments:
@@ -39,12 +53,3 @@ the node-specific files. Unlike with nodes, copying these files is not enough to
 create a functioning server because some additional configuration needs to
 happen, e.g. creating the `backup` user.
 
-## Building the provisioning script
-
-The provisioning script (`provision.sh`) must contain the contens of some of the
-files in the `node` directory. To do this easily, we use [GNU
-M4](https://www.gnu.org/software/m4/) to expand macros in `provision.sh.in` to
-create `provision.sh`.
-
-This can be done automatically by running `make`, which will use the rules
-defined in the `Makefile` to build all files.

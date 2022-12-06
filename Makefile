@@ -21,8 +21,27 @@
 M4 := m4
 M4OPTS := -P
 
+##---- Don't change settings below this line ----##
+
+include config.mk
+
+M4OPTS += \
+	-D m4_SERVER_IP=$(SERVER_IP) \
+	-D m4_HTTPD_PORT=$(HTTPD_PORT) \
+	-D m4_SSHD_PORT=$(SSHD_PORT)
+
 .PHONY: all
-all: provision.sh
+all: provision.sh client.py
+
+# Rule to run *.sh.in through M4 to get *.sh
+%.sh: %.sh.in config.mk
+	@printf 'M4\t%s\n' '$@'
+	$(M4) $(M4OPTS) $< > $@
+
+# Rule to run *.py.in through M4 to get *.py
+%.py: %.py.in config.mk
+	@printf 'M4\t%s\n' '$@'
+	$(M4) $(M4OPTS) $< > $@
 
 # Extra dependency files for provision.sh
 provision_sh_includes := \
@@ -31,8 +50,3 @@ provision_sh_includes := \
 	node/etc/systemd/system/backup.service.d/00-triggers.conf \
 	node/etc/systemd/system/backup.timer.d/00-times.conf
 provision.sh: $(provision_sh_includes)
-
-# Run *.sh.in through m4 to get *.sh
-%.sh: %.sh.in
-	@printf 'M4\t%s\n' '$@'
-	$(M4) $(M4OPTS) $< > $@

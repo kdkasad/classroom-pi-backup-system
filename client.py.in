@@ -39,13 +39,13 @@ from subprocess import CalledProcessError
 
 # Default IP address of the backup server if one is not provided in the stored
 # configuration data
-DEFAULT_SERVER_IP = '10.205.8.217'
+DEFAULT_SERVER_IP = 'm4_SERVER_IP'
 
 # Port on which the backup server is serving configuration
-CONFIG_SERVER_PORT = 36888
+CONFIG_SERVER_PORT = m4_HTTPD_PORT
 
 # Port on which the backup server is listening for SSH connections
-SSHD_PORT = 22
+SSHD_PORT = m4_SSHD_PORT
 
 # Location of drop-in configuration file for backup.timer
 TIMER_DROPIN_PATH = '/etc/systemd/system/backup.timer.d/00-times.conf'

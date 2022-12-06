@@ -20,12 +20,12 @@
 
 
 # Change the following two lines to match your backup server
-SERVER_IP='10.205.8.217'
-SERVER_PORT=36888
+SERVER_IP='m4_SERVER_IP'
+SERVER_PORT='m4_HTTPD_PORT'
 
 ### Do not change anything below this line ###
 
-HOSTNAME_PATTERN='[A-Z0-9][A-Z0-9\-]*'
+hostname_pattern='[A-Z0-9][A-Z0-9\-]*'
 
 info() {
 	printf '\033[1;34mInfo:\033[m ' >&2
@@ -54,7 +54,7 @@ change_hostname() {
 	printf 'Enter a new hostname: ' > /dev/tty
 	IFS='' read -r response < /dev/tty
 	until
-		printf '%s' "$response" | grep -ixq "$HOSTNAME_PATTERN"
+		printf '%s' "$response" | grep -ixq "$hostname_pattern"
 	do
 		err 'The hostname may only contain letters, numbers, and hyphens.'
 		printf 'Enter a new hostname: ' > /dev/tty
@@ -103,7 +103,7 @@ if [ "$hostname" = "raspberrypi" ]
 then
 	warn "You're using the default hostname '%s'." "$hostname"
 	change_hostname
-elif ! printf '%s' "$hostname" | grep -ixq "$HOSTNAME_PATTERN"
+elif ! printf '%s' "$hostname" | grep -ixq "$hostname_pattern"
 then
 	warn 'Invalid or blank hostname detected.'
 	change_hostname
