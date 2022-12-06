@@ -17,7 +17,7 @@
 
 
 [Unit]
-Description=Configuration server for Raspberry Pi backup system
+Description=Configuration server HTTPd for Raspberry Pi backup system
 Documentation=man:webfsd(1)
 Requires=network.target
 After=network.target

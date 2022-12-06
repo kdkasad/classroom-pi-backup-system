@@ -21,8 +21,8 @@ Description=Timer for backup service
 
 [Timer]
 Unit=backup.service
-OnCalendar=00:00
 AccuracySec=15s
+OnCalendar=00:00
 
 [Install]
 WantedBy=timers.target
