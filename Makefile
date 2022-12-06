@@ -21,17 +21,29 @@
 M4 := m4
 M4OPTS := -P
 
+RM := rm
+
 ##---- Don't change settings below this line ----##
 
 include config.mk
 
 M4OPTS += \
-	-D m4_SERVER_IP=$(SERVER_IP) \
-	-D m4_HTTPD_PORT=$(HTTPD_PORT) \
+	-D m4_SERVER_IP=$(SERVER_IP)    \
+	-D m4_HTTPD_PORT=$(HTTPD_PORT)  \
 	-D m4_SSHD_PORT=$(SSHD_PORT)
 
+TARGETS := \
+	provision.sh \
+	client.py \
+	server/var/backups/config/config_server_settings.env
+
 .PHONY: all
-all: provision.sh client.py
+all: $(TARGETS)
+
+.PHONY: clean
+clean: $(TARGETS)
+	@printf 'RM\t%s\n' '$@'
+	$(RM) -f $^
 
 # Rule to run *.sh.in through M4 to get *.sh
 %.sh: %.sh.in config.mk
@@ -43,10 +55,15 @@ all: provision.sh client.py
 	@printf 'M4\t%s\n' '$@'
 	$(M4) $(M4OPTS) $< > $@
 
+# Rule to run *.env.in through M4 to get *.env
+%.env: %.env.in config.mk
+	@printf 'M4\t%s\n' '$@'
+	$(M4) $(M4OPTS) $< > $@
+
 # Extra dependency files for provision.sh
 provision_sh_includes := \
-	node/usr/local/lib/systemd/system/backup.service \
-	node/usr/local/lib/systemd/system/backup.timer \
-	node/etc/systemd/system/backup.service.d/00-triggers.conf \
+	node/usr/local/lib/systemd/system/backup.service              \
+	node/usr/local/lib/systemd/system/backup-on-shutdown.service  \
+	node/usr/local/lib/systemd/system/backup.timer                \
 	node/etc/systemd/system/backup.timer.d/00-times.conf
 provision.sh: $(provision_sh_includes)

@@ -34,7 +34,7 @@ from json import JSONDecodeError
 from pathlib import Path
 from requests.exceptions import HTTPError
 from stat import S_IRUSR, S_IWUSR, S_IXUSR
-from subprocess import CalledProcessError
+from subprocess import CalledProcessError, DEVNULL
 
 
 # Default IP address of the backup server if one is not provided in the stored
@@ -49,9 +49,6 @@ SSHD_PORT = m4_SSHD_PORT
 
 # Location of drop-in configuration file for backup.timer
 TIMER_DROPIN_PATH = '/etc/systemd/system/backup.timer.d/00-times.conf'
-
-# Location of drop-in configuration file for backup.service
-SERVICE_DROPIN_PATH = '/etc/systemd/system/backup.service.d/00-triggers.conf'
 
 # Command to use instead of 'ssh'
 rsh = 'ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -139,7 +136,7 @@ def apply_config(config, prev_config):
 
     # Set times for backup.timer
     # See systemd.timer(5) and systemd.time(7) for details
-    trigger_times = []
+    enable_on_shutdown = False
     try:
         with open(TIMER_DROPIN_PATH, 'w') as times:
             print('[Timer]', file=times)
@@ -151,11 +148,8 @@ def apply_config(config, prev_config):
             # Print times
             print('OnCalendar=', file=times)
             for time in config['backup_times']:
-                if time.startswith('@'):
-                    entry = time.split(':')
-                    if len(entry) < 2:
-                        entry.append('')
-                    trigger_times.append(entry)
+                if time == '@shutdown':
+                    enable_on_shutdown = True
                 else:
                     # TODO: check validity using systemd-analyze(1)
                     print('OnCalendar=', time, sep='', file=times)
@@ -163,31 +157,17 @@ def apply_config(config, prev_config):
         die('Failed to save trigger times to ',
             TIMER_DROPIN_PATH, ': ', err, sep='')
 
-    # Set triggers for backup.service
-    # See systemd.service(5) and systemd.unit(5) for details
-    if trigger_times:
-        unit_entries = []
-        install_entries = []
-        for order, unit in trigger_times:
-            if order == '@before':
-                unit_entries.append('Before=' + unit)
-            elif order == '@after':
-                unit_entries.append('After=' + unit)
-            else:
-                warn(f"Ignoring invalid trigger entry: '@{order}:{unit}'")
-                continue
-            install_entries.append('WantedBy=' + unit)
-        try:
-            with open(SERVICE_DROPIN_PATH, 'w') as dropin:
-                print('[Unit]', file=dropin)
-                for entry in unit_entries:
-                    print(entry, file=dropin)
-                print('[Install]', 'WantedBy=', sep='\n', file=dropin)
-                for entry in install_entries:
-                    print(entry, file=dropin)
-        except OSError as err:
-            die('Failed to save triggers to ',
-                SERVICE_DROPIN_PATH, ': ', err, sep='')
+    # Enable/disable backup-on-shutdown.service
+    cmd = [
+        '/usr/bin/systemctl', '--no-ask-password',
+        'enable' if enable_on_shutdown else 'disable',
+        '--now',
+        'backup-on-shutdown.service'
+    ]
+    try:
+        subprocess.run(cmd, check=True, stdout=DEVNULL, stderr=DEVNULL)
+    except CalledProcessError as err:
+        warn('Failed to enable backup on shutdown service:', err)
 
     # Reload systemd
     try:

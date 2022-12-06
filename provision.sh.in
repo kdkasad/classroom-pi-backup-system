@@ -122,7 +122,6 @@ info 'Creating systemd units...'
 # Create systemd parent directories
 install -d -m 755 \
 	/usr/local/lib/systemd/system \
-	/etc/systemd/system/backup.service.d \
 	/etc/systemd/system/backup.timer.d
 
 # Create backup service unit
@@ -131,8 +130,9 @@ cat <<- 'EOF' > /usr/local/lib/systemd/system/backup.service
 m4_include(`node/usr/local/lib/systemd/system/backup.service')
 EOF
 
-cat <<- 'EOF' > /etc/systemd/system/backup.service.d/00-triggers.conf
-m4_include(`node/etc/systemd/system/backup.service.d/00-triggers.conf')
+# Create backup on shutdown service unit
+cat <<- 'EOF' > /usr/local/lib/systemd/system/backup-on-shutdown.service
+m4_include(`node/usr/local/lib/systemd/system/backup-on-shutdown.service')
 EOF
 
 # Create backup timer unit
@@ -162,11 +162,11 @@ chmod 750 /usr/local/lib/backup_client.py
 info 'Reloading systemd configuration...'
 systemctl daemon-reload
 info 'Enabling systemd units...'
-systemctl enable backup.service backup.timer
+systemctl enable backup.timer backup-on-shutdown.service
 info 'Running backup service...'
 systemctl start backup.service
-info 'Starting backup timer...'
-systemctl start backup.timer
+info 'Starting backup trigger units...'
+systemctl start backup.timer backup-on-shutdown.service
 
 printf '\n'
 info 'Done!'

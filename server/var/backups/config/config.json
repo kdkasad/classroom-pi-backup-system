@@ -17,7 +17,7 @@
 	"archive_name_format": "{now}",
 
 	"backup_times": [
-		"@before:shutdown.target",
+		"@shutdown",
 		"Mon,Tue,Thu,Fri 10:00",
 		"Mon,Tue,Thu,Fri 11:50",
 		"Mon,Tue,Thu,Fri 14:30",
