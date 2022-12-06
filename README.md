@@ -21,35 +21,14 @@ To build the scripts,
 2. Then run the command `make` to generate `provision.sh` and `client.py`.
 
 The provisioning script must also contain the contents of some of the
-files in the `node` directory. This is also handled by M4 and the `Makefile`.
+files in the `node` directory. This too is handled by M4 and the `Makefile`.
 
 ## Repository structure
 
-The repository is sectioned into three main segments:
-    1. Loose files
-    2. The `node` directory
-    3. The `server` directory
-
-### Loose files
-
-Several files exist in the repository root, chiefly `provision.sh.in` and
-`client.py`. These files are used in both the server and the node and are the
-main files that will be edited, so they live in the repository root. They are
-symbolically linked to from within the `node` and `server` directory trees.
-
-The `Makefile` is a script-like file that will perform any
-processing/compilation necessary to build the files in the repository.
-
-### The `node` directory
-
-The `node` directory mimics the filesystem structure of a node and contains the
-node-specific files. Running `cp -aLT ./node /` as root from this repository
-will copy all necessary files into the correct locations on a node.
-
-### The `server` directory
-
-The `server` directory mimics the filesystem structure of a node and contains
-the node-specific files. Unlike with nodes, copying these files is not enough to
-create a functioning server because some additional configuration needs to
-happen, e.g. creating the `backup` user.
-
+The repository is sectioned into three parts:
+    1. Loose files - Consists of build system files and files shared between
+       nodes and the server
+    2. The `node` directory - Contains node-specific files and mimics the
+       directory structure of a node.
+    3. The `server` directory - Contains server-specific files and mimics the
+       directory structure of a server.
