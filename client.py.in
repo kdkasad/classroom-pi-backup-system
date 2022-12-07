@@ -20,6 +20,8 @@
 
 
 import atexit
+import errno
+import fcntl
 import json
 import os
 import pwd
@@ -29,7 +31,9 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 
+from fcntl import LOCK_EX, LOCK_NB
 from json import JSONDecodeError
 from pathlib import Path
 from requests.exceptions import HTTPError
@@ -49,6 +53,10 @@ SSHD_PORT = m4_SSHD_PORT
 
 # Location of drop-in configuration file for backup.timer
 TIMER_DROPIN_PATH = '/etc/systemd/system/backup.timer.d/00-times.conf'
+
+# Default location for the backup client's lock file. If $RUNTIME_DIRECTORY
+# is set, the file will be placed in that directory instead.
+DEFAULT_LOCK_FILE_PATH = '/var/run/backup_client.lock'
 
 # Command to use instead of 'ssh'
 rsh = 'ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -373,7 +381,25 @@ def drop_privileges_to(uid, gid):
 
 
 def main():
-    global DEFAULT_CONFIG, rsh
+    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH
+
+    # Attempt to acquire lock file
+    try:
+        lockfile_path = Path(os.getenv('RUNTIME_DIRECTORY').split(':')[0])
+        lockfile_path /= 'backup_client.lock'
+    except:
+        lockfile_path = DEFAULT_LOCK_FILE_PATH
+    try:
+        lockfile = open(lockfile_path, 'w')
+    except OSError as err:
+        die('Failed to open lock file:', err)
+    try:
+        fcntl.flock(lockfile, LOCK_EX | LOCK_NB)
+    except OSError as err:
+        if err.errno == errno.EWOULDBLOCK or err.errno == errno.EACCES:
+            die(f'Cannot acquire lock on {DEFAULT_LOCK_FILE_PATH}. Is the backup client is already running?')
+        else:
+            die('Failed to acquire lock on ', err, '.', sep='')
 
     # Attempt to load stored configuration file
     try:

@@ -23,5 +23,6 @@ After=network-online.target network.target
 
 [Service]
 StateDirectory=backup_client
+RuntimeDirectory=backup_client
 Type=oneshot
 ExecStart=/usr/local/lib/backup_client.py

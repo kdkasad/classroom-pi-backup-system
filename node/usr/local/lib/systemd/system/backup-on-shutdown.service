@@ -24,6 +24,7 @@ Before=shutdown.target
 
 [Service]
 StateDirectory=backup_client
+RuntimeDirectory=backup_client
 Type=oneshot
 RemainAfterExit=true
 ExecStart=/usr/bin/true
