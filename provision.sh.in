@@ -168,6 +168,6 @@ info 'Starting backup trigger units...'
 systemctl start backup.timer backup-on-shutdown.service
 
 printf '\n'
-info 'Done!'
+info 'Successfully installed backup system!'
 
 exit 0
