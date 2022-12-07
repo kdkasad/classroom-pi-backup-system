@@ -40,6 +40,9 @@ TARGETS := \
 .PHONY: all
 all: $(TARGETS)
 
+# Don't echo recipe commands unless $(ECHO) is set
+$(ECHO).SILENT:
+
 .PHONY: clean
 clean: $(TARGETS)
 	for file in $^; do printf 'RM\t%s\n' "$$file"; done
