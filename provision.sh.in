@@ -68,8 +68,7 @@ change_hostname() {
 	# writes the new name to /etc/hostname then updates the live hostname using
 	# hostname(1) or /proc/sys/kernel/hostname.
 	if ! \
-		hostnamectl --no-ask-password --static --pretty hostname "$response" \
-			2>/dev/null
+		hostnamectl --no-ask-password set-hostname "$response" 2>/dev/null
 	then
 		warn 'Calling hostnamectl(1) failed. Falling back to hostname(1).'
 		printf '%s\n' "$response" > /etc/hostname
