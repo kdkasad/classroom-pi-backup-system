@@ -391,8 +391,7 @@ def main():
              DEFAULT_LOCK_FILE_PATH, 'as lock file.')
         lockfile_path = DEFAULT_LOCK_FILE_PATH
     try:
-        with open(lockfile_path, 'w') as f:
-            lockfile = f
+        lockfile = open(lockfile_path, 'w')
     except OSError as err:
         die('Failed to open lock file:', err)
     try:
