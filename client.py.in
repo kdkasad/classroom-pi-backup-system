@@ -34,7 +34,7 @@ import sys
 import tempfile
 import time
 
-from fcntl import LOCK_EX, LOCK_NB
+from fcntl import LOCK_EX, LOCK_NB, LOCK_UN
 from json import JSONDecodeError
 from pathlib import Path
 from requests.exceptions import HTTPError
@@ -96,6 +96,9 @@ DEFAULT_CONFIG = {
 
 # When called with --resume-after-update, we store the epoch given here
 skip_updates_through = 0
+
+# Lock file handle
+lockfile = None
 
 
 def die(*args, **kwargs):
@@ -213,6 +216,30 @@ def apply_update(server, epoch, script_name):
         die(f'Failed to download script for update #{epoch}:', err)
     except HTTPError as err:
         die('HTTP error:', err)
+
+    log(f'Applied update #{epoch}.')
+    log('Re-executing backup client...')
+    reexec_script('--resume-after-update', epoch)
+
+
+# Re-execute this client script
+def reexec_script(*args):
+    global lockfile
+
+    # Release lockfile
+    try:
+        fcntl.flock(lockfile, LOCK_UN | LOCK_NB)
+    except OSError:
+        warn('Failed to release lock on', lockfile.name)
+    lockfile.close()
+
+    # Execute script
+    progargs = [sys.argv[0]] + [str(arg) for arg in args]
+    try:
+        os.execvp(sys.argv[0], progargs)
+    except OSError as err:
+        error('Failed to re-execute backup client:', err)
+        die('Manually clean up system before running backup client again.')
 
 
 def store_config(data, path):
@@ -386,7 +413,7 @@ def drop_privileges_to(uid, gid):
 
 
 def main():
-    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH, skip_updates_through
+    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH, skip_updates_through, lockfile
 
     # Attempt to acquire lock file
     try:
@@ -399,6 +426,8 @@ def main():
     try:
         lockfile = open(lockfile_path, 'w')
     except OSError as err:
+        if lockfile:
+            lockfile.close()
         die('Failed to open lock file:', err)
     try:
         fcntl.flock(lockfile, LOCK_EX | LOCK_NB)
