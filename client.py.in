@@ -100,6 +100,9 @@ skip_updates_through = 0
 # Lock file handle
 lockfile = None
 
+# Temporary SSH key path
+tmp_ssh_key = None
+
 
 def die(*args, **kwargs):
     if args:
@@ -238,6 +241,8 @@ def reexec_script(*args):
     except OSError:
         warn('Failed to release lock on', lockfile.name)
     lockfile.close()
+
+    delete_ssh_key()
 
     # Flush output buffers
     sys.stdout.flush()
@@ -379,12 +384,7 @@ def copy_ssh_key(uid, gid):
         os.chmod(fd, S_IRUSR)
 
         # Delete temporary key file when program exits
-        def delete_ssh_key(ssh_key):
-            try:
-                os.remove(ssh_key)
-            except Exception as err:
-                pass  # ignore
-        atexit.register(delete_ssh_key, tmppath)
+        atexit.register(delete_ssh_key)
 
         # Copy contents from original key
         with open(SSH_KEY, 'rb') as src, open(fd, 'wb') as dst:
@@ -393,6 +393,15 @@ def copy_ssh_key(uid, gid):
         die('Failed to make copy of SSH key:', err)
 
     return tmppath
+
+
+def delete_ssh_key():
+    global tmp_ssh_key
+    if tmp_ssh_key:
+        try:
+            os.remove(tmp_ssh_key)
+        except OSError as err:
+            warn('Failed to delete temprary SSH key:', err)
 
 
 def get_drop_ids(user):
@@ -423,7 +432,7 @@ def drop_privileges_to(uid, gid):
 
 
 def main():
-    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH, skip_updates_through, lockfile
+    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH, skip_updates_through, lockfile, tmp_ssh_key
 
     # Attempt to acquire lock file
     try:
@@ -501,10 +510,10 @@ def main():
 
     uid, gid = get_drop_ids(os.getenv('BACKUP_USER')
                             or config['backup_user'] or 'pi')
-    ssh_key = copy_ssh_key(uid, gid)
-    rsh += ' -i ' + ssh_key
+    tmp_ssh_key = copy_ssh_key(uid, gid)
+    rsh += ' -i ' + tmp_ssh_key
     drop_privileges_to(uid, gid)
-    do_backup(config, ssh_key)
+    do_backup(config, tmp_ssh_key)
 
 
 if __name__ == '__main__':
