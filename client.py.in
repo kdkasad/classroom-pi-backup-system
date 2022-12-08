@@ -387,6 +387,8 @@ def main():
         lockfile_path = Path(os.getenv('RUNTIME_DIRECTORY').split(':')[0])
         lockfile_path /= 'backup_client.lock'
     except:
+        warn('Environment variable RUNTIME_DIRECTORY is not set. Falling back to',
+             DEFAULT_LOCK_FILE_PATH, 'as lock file.')
         lockfile_path = DEFAULT_LOCK_FILE_PATH
     try:
         with open(lockfile_path, 'w') as f:
