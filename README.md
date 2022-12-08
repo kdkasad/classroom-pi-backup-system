@@ -32,3 +32,7 @@ The repository is sectioned into three parts:
        directory structure of a node.
     3. The `server` directory - Contains server-specific files and mimics the
        directory structure of a server.
+
+## To-do list
+
+- [ ] Add automated testing capability
