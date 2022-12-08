@@ -142,6 +142,8 @@ def time_is_valid(time):
 def apply_config(config, prev_config):
     global skip_updates_through
 
+    log('Applying new configuration...')
+
     # Apply updates from updates list
     current_update_epoch = max(max(
         [update['epoch'] for update in prev_config['updates']]
@@ -203,7 +205,11 @@ def apply_config(config, prev_config):
 
 
 def apply_update(server, epoch, script_name):
+    # Log and flush buffers
     log('Attempting to apply update #', epoch, '...', sep='')
+    sys.stdout.flush()
+    sys.stderr.flush()
+
     uri = f"http://{server['host']}:{server['httpd_port']}/{script_name}"
     try:
         response = requests.get(uri)
@@ -232,6 +238,10 @@ def reexec_script(*args):
     except OSError:
         warn('Failed to release lock on', lockfile.name)
     lockfile.close()
+
+    # Flush output buffers
+    sys.stdout.flush()
+    sys.stderr.flush()
 
     # Execute script
     progargs = [sys.argv[0]] + [str(arg) for arg in args]
@@ -486,7 +496,6 @@ def main():
 
     # If fetched config is newer, apply and store it
     if config['epoch'] > stored_config['epoch']:
-        log('Applying new configuration...')
         apply_config(config, stored_config)
         store_config(config_json, stored_config_path)
 
