@@ -26,7 +26,7 @@ After=network.target
 User=backup
 Group=backup
 WorkingDirectory=~
-EnvironmentFile=/var/backups/config/config_server_settings.env
+EnvironmentFile=/var/lib/backup/config/config_server_settings.env
 ExecStart=/usr/bin/webfsd -F -j -c 50 -p ${PORT} -r ${CONFIG_SERVER_DATA_ROOT}
 Type=exec
 

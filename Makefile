@@ -35,7 +35,7 @@ M4OPTS += \
 TARGETS := \
 	provision.sh \
 	client.py \
-	server/var/backups/config/config_server_settings.env
+	server/var/lib/backup/config/config_server_settings.env
 
 .PHONY: all
 all: $(TARGETS)
