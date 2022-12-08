@@ -19,6 +19,7 @@
 #
 
 
+import argparse
 import atexit
 import errno
 import fcntl
@@ -93,6 +94,9 @@ DEFAULT_CONFIG = {
     'backup_user': 'pi',
 }
 
+# When called with --resume-after-update, we store the epoch given here
+skip_updates_through = 0
+
 
 def die(*args, **kwargs):
     if args:
@@ -133,10 +137,12 @@ def time_is_valid(time):
 
 
 def apply_config(config, prev_config):
+    global skip_updates_through
+
     # Apply updates from updates list
-    current_update_epoch = max(
+    current_update_epoch = max(max(
         [update['epoch'] for update in prev_config['updates']]
-    )
+    ), skip_updates_through)
     latest_update_epoch = max(
         [update['epoch'] for update in config['updates']]
     )
@@ -380,7 +386,7 @@ def drop_privileges_to(uid, gid):
 
 
 def main():
-    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH
+    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH, skip_updates_through
 
     # Attempt to acquire lock file
     try:
@@ -401,6 +407,15 @@ def main():
             die(f'Cannot acquire lock on {DEFAULT_LOCK_FILE_PATH}. Is the backup client is already running?')
         else:
             die('Failed to acquire lock on ', err, '.', sep='')
+
+    # Parse command-line arguments
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-u', '--resume-after-update',
+                    help='Skips application of updates prior to the epoch given',
+                    type=int,
+                    default=0)
+    args = ap.parse_args()
+    skip_updates_through = args.resume_after_update
 
     # Attempt to load stored configuration file
     try:
