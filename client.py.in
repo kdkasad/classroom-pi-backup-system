@@ -344,9 +344,8 @@ def copy_ssh_key(uid, gid):
         atexit.register(delete_ssh_key, tmppath)
 
         # Copy contents from original key
-        with open(SSH_KEY, 'rb') as src:
-            with open(fd, 'wb') as dst:
-                shutil.copyfileobj(src, dst)
+        with open(SSH_KEY, 'rb') as src, open(fd, 'wb') as dst:
+            shutil.copyfileobj(src, dst)
     except Exception as err:
         die('Failed to make copy of SSH key:', err)
 
@@ -390,7 +389,8 @@ def main():
     except:
         lockfile_path = DEFAULT_LOCK_FILE_PATH
     try:
-        lockfile = open(lockfile_path, 'w')
+        with open(lockfile_path, 'w') as f:
+            lockfile = f
     except OSError as err:
         die('Failed to open lock file:', err)
     try:
