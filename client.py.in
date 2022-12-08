@@ -136,8 +136,11 @@ def fill_struct_with_defaults(source, default):
             source[key] = value
 
 
-def time_is_valid(time):
-    cmd = ['/usr/bin/systemd-analyze', 'calendar', time]
+def time_is_valid(type, time):
+    VALID_TYPES = ['timespan', 'calendar']
+    if type not in VALID_TYPES:
+        raise ValueError('Invalid time type')
+    cmd = ['/usr/bin/systemd-analyze', type, time]
     proc = subprocess.run(cmd, stdout=DEVNULL, stderr=DEVNULL)
     return proc.returncode == 0
 
@@ -166,22 +169,24 @@ def apply_config(config, prev_config):
     # See systemd.timer(5) and systemd.time(7) for details
     enable_on_shutdown = False
     try:
-        with open(TIMER_DROPIN_PATH, 'w') as times:
-            print('[Timer]', file=times)
+        with open(TIMER_DROPIN_PATH, 'w') as dropin:
+            print('[Timer]', file=dropin)
             # Print randomized delay setting
-            # TODO: check validity using systemd-analyze
-            print('RandomizedDelaySec=',
-                  config['backup_time_randomized_delay'], sep='', file=times)
+            time = config['backup_time_randomized_delay']
+            if time_is_valid('timespan', time):
+                print('RandomizedDelaySec=', time, sep='', file=dropin)
+            else:
+                warn(f"Time span '{time}' is invalid. Ignoring it...")
 
             # Print times
-            print('OnCalendar=', file=times)
+            print('OnCalendar=', file=dropin)
             for time in config['backup_times']:
                 if time == '@shutdown':
                     enable_on_shutdown = True
-                elif time_is_valid(time):
-                    print('OnCalendar=', time, sep='', file=times)
+                elif time_is_valid('calendar', time):
+                    print('OnCalendar=', time, sep='', file=dropin)
                 else:
-                    warn(f"Time specifier '{time}' is invalid. Ignoring it...")
+                    warn(f"Calendar time '{time}' is invalid. Ignoring it...")
     except OSError as err:
         die('Failed to save trigger times to ',
             TIMER_DROPIN_PATH, ': ', err, sep='')
