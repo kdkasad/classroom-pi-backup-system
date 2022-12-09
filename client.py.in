@@ -270,7 +270,7 @@ def store_config(data, path):
         warn('Failed to save updated configuration:', err)
 
 
-def do_backup(config, ssh_key, is_retry=False):
+def do_backup(config, is_retry=False):
     global rsh, BORG_ENV
 
     server_ip = config['server']['host']
@@ -321,8 +321,8 @@ def do_backup(config, ssh_key, is_retry=False):
         # Failed
         if repo_doesnt_exist and not is_retry:
             warn('Backup repository does not exist. Creating new repository...')
-            create_repo(repo_uri, ssh_key)
-            do_backup(config, ssh_key, True)
+            create_repo(repo_uri)
+            do_backup(config, True)
         else:
             error('Borg failed to create backup and produced',
                   len(errors), 'errors and', len(warnings), 'warnings (listed below).')
@@ -333,7 +333,7 @@ def do_backup(config, ssh_key, is_retry=False):
             die()
 
 
-def create_repo(uri, ssh_key):
+def create_repo(uri):
     global rsh, BORG_ENV
     cmd = [
         '/usr/bin/borg',
@@ -380,11 +380,13 @@ def create_repo(uri, ssh_key):
         die()
 
 
-# Make a user-readable copy of the SSH key
+# Make a user-readable copy of the SSH key.
+# Stores the path to the copy in `tmp_ssh_key'.
 def copy_ssh_key(uid, gid):
+    global tmp_ssh_key
     try:
         # Create temporary key file
-        (fd, tmppath) = tempfile.mkstemp()
+        (fd, tmp_ssh_key) = tempfile.mkstemp()
         os.chown(fd, uid, gid)
         os.chmod(fd, S_IRUSR)
 
@@ -396,8 +398,7 @@ def copy_ssh_key(uid, gid):
             shutil.copyfileobj(src, dst)
     except Exception as err:
         die('Failed to make copy of SSH key:', err)
-
-    return tmppath
+    return tmp_ssh_key
 
 
 def delete_ssh_key():
@@ -437,7 +438,7 @@ def drop_privileges_to(uid, gid):
 
 
 def main():
-    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH, skip_updates_through, lockfile, tmp_ssh_key
+    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH, skip_updates_through, lockfile
 
     # Attempt to acquire lock file
     try:
@@ -515,10 +516,11 @@ def main():
 
     uid, gid = get_drop_ids(os.getenv('BACKUP_USER')
                             or config['backup_user'] or 'pi')
-    tmp_ssh_key = copy_ssh_key(uid, gid)
-    rsh += ' -i ' + tmp_ssh_key
+    tmpkey = copy_ssh_key(uid, gid)
+    rsh += ' -i ' + tmpkey
     drop_privileges_to(uid, gid)
-    do_backup(config, tmp_ssh_key)
+
+    do_backup(config)
 
 
 if __name__ == '__main__':
