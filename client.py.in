@@ -94,9 +94,6 @@ DEFAULT_CONFIG = {
     'backup_user': 'pi',
 }
 
-# When called with --resume-after-update, we store the epoch given here
-skip_updates_through = 0
-
 # Lock file handle
 lockfile = None
 
@@ -145,15 +142,13 @@ def time_is_valid(type, time):
     return proc.returncode == 0
 
 
-def apply_config(config, prev_config):
-    global skip_updates_through
-
+def apply_config(config, prev_config, skip=0):
     log('Applying new configuration...')
 
     # Apply updates from updates list
     current_update_epoch = max(max(
         [update['epoch'] for update in prev_config['updates']]
-    ), skip_updates_through)
+    ), skip)
     latest_update_epoch = max(
         [update['epoch'] for update in config['updates']]
     )
@@ -462,18 +457,22 @@ def acquire_lock_file():
             die('Failed to acquire lock on ', err, '.', sep='')
 
 
-def main():
-    global DEFAULT_CONFIG, rsh, skip_updates_through
-
-    acquire_lock_file()
-
-    # Parse command-line arguments
+# Parse command-line arguments
+def parse_command_line_args():
     ap = argparse.ArgumentParser()
     ap.add_argument('-u', '--resume-after-update',
                     help='Skips application of updates prior to the epoch given',
                     type=int,
                     default=0)
-    args = ap.parse_args()
+    return ap.parse_args()
+
+
+def main():
+    global DEFAULT_CONFIG, rsh
+
+    acquire_lock_file()
+
+    args = parse_command_line_args()
     skip_updates_through = args.resume_after_update
 
     # Attempt to load stored configuration file
@@ -516,7 +515,7 @@ def main():
 
     # If fetched config is newer, apply and store it
     if config['epoch'] > stored_config['epoch']:
-        apply_config(config, stored_config)
+        apply_config(config, stored_config, skip=skip_updates_through)
         store_config(config_json, stored_config_path)
 
     uid, gid = get_drop_ids(os.getenv('BACKUP_USER')
