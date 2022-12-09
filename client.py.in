@@ -437,10 +437,9 @@ def drop_privileges_to(uid, gid):
         die('Failed to drop privileges:', err)
 
 
-def main():
-    global DEFAULT_CONFIG, rsh, DEFAULT_LOCK_FILE_PATH, skip_updates_through, lockfile
-
-    # Attempt to acquire lock file
+# Attempt to acquire lock file
+def acquire_lock_file():
+    global DEFAULT_LOCK_FILE_PATH, lockfile
     try:
         lockfile_path = Path(os.getenv('RUNTIME_DIRECTORY').split(':')[0])
         lockfile_path /= 'backup_client.lock'
@@ -461,6 +460,12 @@ def main():
             die(f'Cannot acquire lock on {DEFAULT_LOCK_FILE_PATH}. Is the backup client is already running?')
         else:
             die('Failed to acquire lock on ', err, '.', sep='')
+
+
+def main():
+    global DEFAULT_CONFIG, rsh, skip_updates_through
+
+    acquire_lock_file()
 
     # Parse command-line arguments
     ap = argparse.ArgumentParser()
