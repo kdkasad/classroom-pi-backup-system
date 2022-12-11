@@ -457,6 +457,36 @@ def acquire_lock_file():
             die('Failed to acquire lock on ', err, '.', sep='')
 
 
+def stored_config_path():
+    try:
+        state_dir = Path(os.getenv('STATE_DIRECTORY').split(':')[0])
+    except:
+        die("Environment variable STATE_DIRECTORY is not set")
+    return state_dir / 'config.json'
+
+
+# Attempt to load stored configuration file
+def load_stored_config():
+    global DEFAULT_CONFIG
+    try:
+        with open(stored_config_path(), 'r') as file:
+            stored_config = json.load(file)
+            fill_struct_with_defaults(stored_config, DEFAULT_CONFIG)
+    except FileNotFoundError:
+        warn('No stored configuration file found.')
+        warn('Continuing with default settings...')
+        stored_config = DEFAULT_CONFIG
+    except ValueError:
+        warn('Stored configuration contains invalid JSON.')
+        warn('Continuing with defaults instead...')
+        stored_config = DEFAULT_CONFIG
+    except Exception as err:
+        warn('Unable to open stored configuration file:', err)
+        warn('Continuing with defaults instead...')
+        stored_config = DEFAULT_CONFIG
+    return stored_config
+
+
 # Parse command-line arguments
 def parse_command_line_args():
     ap = argparse.ArgumentParser()
@@ -475,22 +505,7 @@ def main():
     args = parse_command_line_args()
     skip_updates_through = args.resume_after_update
 
-    # Attempt to load stored configuration file
-    try:
-        state_dir = Path(os.getenv('STATE_DIRECTORY').split(':')[0])
-    except:
-        die("Environment variable STATE_DIRECTORY is not set")
-    stored_config_path = state_dir / 'config.json'
-    try:
-        with open(stored_config_path, 'r') as file:
-            stored_config = json.load(file)
-            fill_struct_with_defaults(stored_config, DEFAULT_CONFIG)
-    except FileNotFoundError:
-        warn('No stored configuration file found.')
-        stored_config = DEFAULT_CONFIG
-    except ValueError:
-        warn('Stored configuration contains invalid JSON. Ignoring it.')
-        stored_config = DEFAULT_CONFIG
+    stored_config = load_stored_config()
 
     # Find backup server parameters
     server_host = stored_config['server']['host']
@@ -516,7 +531,7 @@ def main():
     # If fetched config is newer, apply and store it
     if config['epoch'] > stored_config['epoch']:
         apply_config(config, stored_config, skip=skip_updates_through)
-        store_config(config_json, stored_config_path)
+        store_config(config_json, stored_config_path())
 
     uid, gid = get_drop_ids(os.getenv('BACKUP_USER')
                             or config['backup_user'] or 'pi')
