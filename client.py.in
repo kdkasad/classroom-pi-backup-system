@@ -544,8 +544,8 @@ def main():
         apply_config(config, stored_config, skip=skip_updates_through)
         store_config(config_json, stored_config_path())
 
-    uid, gid = get_drop_ids(os.getenv('BACKUP_USER')
-                            or config['backup_user'] or 'pi')
+    # Drop privileges
+    uid, gid = get_drop_ids(config['backup_user'])
     tmpkey = copy_ssh_key(uid, gid)
     rsh += ' -i ' + tmpkey
     drop_privileges_to(uid, gid)
