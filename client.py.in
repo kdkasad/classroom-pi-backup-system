@@ -497,6 +497,26 @@ def parse_command_line_args():
     return ap.parse_args()
 
 
+def fetch_configuration_from(host, port):
+    global DEFAULT_CONFIG
+    uri = f'http://{host}:{port}/config.json'
+    log(f'Fetching configuration from {uri}...')
+    try:
+        response = requests.get(uri)
+        response.raise_for_status()
+        config_json = response.text
+        config = response.json()
+        fill_struct_with_defaults(config, DEFAULT_CONFIG)
+        return (config, config_json)
+    except HTTPError as err:
+        error('HTTP error:', err)
+    except ValueError as err:
+        error('Invalid JSON response from configuration server:', err)
+    except Exception as err:
+        error('Failed to fetch configuration:', err)
+    return None
+
+
 def main():
     global DEFAULT_CONFIG, rsh
 
@@ -507,26 +527,12 @@ def main():
 
     stored_config = load_stored_config()
 
-    # Find backup server parameters
-    server_host = stored_config['server']['host']
-    httpd_port = stored_config['server']['httpd_port']
-    log('Backup server host:', server_host)
-    log('HTTPd port:', httpd_port)
-
-    # Fetch latest configuration from server
-    uri = f'http://{server_host}:{httpd_port}/config.json'
-    try:
-        response = requests.get(uri)
-        response.raise_for_status()
-        config_json = response.text
-        config = response.json()
-        fill_struct_with_defaults(config, DEFAULT_CONFIG)
-    except ConnectionError as err:
-        die('Connection to configuration server failed:', err)
-    except HTTPError as err:
-        die('HTTP error:', err)
-    except ValueError as err:
-        die('Invalid JSON response from configuration server:', err)
+    # Fetch configuration
+    resp = fetch_configuration_from(stored_config['server']['host'],
+                                    stored_config['server']['httpd_port'])
+    if resp is None:
+        die('Failed to fetch configuration.')
+    config, config_json = resp
 
     # If fetched config is newer, apply and store it
     if config['epoch'] > stored_config['epoch']:
