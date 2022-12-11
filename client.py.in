@@ -26,20 +26,18 @@ import fcntl
 import json
 import os
 import pwd
-import requests
 import shutil
-import socket
+import stat
 import subprocess
 import sys
 import tempfile
-import time
-
 from fcntl import LOCK_EX, LOCK_NB, LOCK_UN
 from json import JSONDecodeError
 from pathlib import Path
-from requests.exceptions import HTTPError
-from stat import S_IRUSR, S_IWUSR, S_IXUSR
 from subprocess import CalledProcessError, DEVNULL
+
+import requests
+from requests.exceptions import HTTPError
 
 
 # Default IP address of the backup server if one is not provided in the stored
@@ -385,7 +383,7 @@ def copy_ssh_key(uid, gid):
         # Create temporary key file
         (fd, tmp_ssh_key) = tempfile.mkstemp()
         os.chown(fd, uid, gid)
-        os.chmod(fd, S_IRUSR)
+        os.chmod(fd, stat.S_IRUSR)
 
         # Delete temporary key file when program exits
         atexit.register(delete_ssh_key)
