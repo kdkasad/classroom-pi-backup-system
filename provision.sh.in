@@ -94,6 +94,19 @@ then
 	exit 1
 fi
 
+# Remove artifacts from previous installations. We don't need to remove all
+# installed files, just ones that won't be overwritten later and may cause
+# unexpected behavior.
+for dir in \
+	/etc/systemd/system/backup.service.d \
+	/etc/systemd/system/backup.timer.d   \
+	/var/lib/backup_client               \
+	/usr/local/share/backup_client
+do
+	warn 'Deleting directory %s left over previous installation...' "$dir"
+	rm -rf "$dir"
+done
+
 # If the hostname has not been changed, prompt for a new one.
 # If it appears to have been changed, print the detected hostname.
 hostname="$(hostname)"
