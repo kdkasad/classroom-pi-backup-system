@@ -518,7 +518,7 @@ def fetch_configuration_from(host, port):
 
 
 def main():
-    global DEFAULT_CONFIG, rsh
+    global DEFAULT_CONFIG, DEFAULT_SERVER_IP, CONFIG_SERVER_PORT, rsh
 
     acquire_lock_file()
 
@@ -531,8 +531,13 @@ def main():
     resp = fetch_configuration_from(stored_config['server']['host'],
                                     stored_config['server']['httpd_port'])
     if resp is None:
-        die('Failed to fetch configuration.')
-    config, config_json = resp
+        warn('Failed to fetch configuration.',
+             'Retrying with default server parameters...')
+        resp = fetch_configuration_from(DEFAULT_SERVER_IP, CONFIG_SERVER_PORT)
+    if resp is None:
+        die('Failed to fetch configuration from server.')
+    else:
+        config, config_json = resp
 
     # If fetched config is newer, apply and store it
     if config['epoch'] > stored_config['epoch']:
