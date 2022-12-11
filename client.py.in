@@ -268,6 +268,8 @@ def store_config(data, path):
 def do_backup(config, is_retry=False):
     global rsh, BORG_ENV
 
+    log('Running Borg backup...')
+
     server_ip = config['server']['host']
     sshd_port = config['server']['sshd_port']
 
