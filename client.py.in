@@ -186,7 +186,7 @@ def apply_config(config, prev_config, skip=0):
 
     # Enable/disable backup-on-shutdown.service
     cmd = [
-        '/usr/bin/systemctl', '--no-ask-password',
+        'systemctl', '--no-ask-password',
         'enable' if enable_on_shutdown else 'disable',
         '--now',
         'backup-on-shutdown.service'
@@ -198,7 +198,7 @@ def apply_config(config, prev_config, skip=0):
 
     # Reload systemd
     try:
-        cmd = ['/usr/bin/systemctl', '--no-ask-password', 'daemon-reload']
+        cmd = ['systemctl', '--no-ask-password', 'daemon-reload']
         subprocess.run(cmd, check=True, stdout=DEVNULL, stderr=DEVNULL)
     except CalledProcessError as err:
         warn('Failed to reload systemd:', err)

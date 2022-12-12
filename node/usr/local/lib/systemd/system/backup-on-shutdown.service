@@ -27,7 +27,7 @@ StateDirectory=backup_client
 RuntimeDirectory=backup_client
 Type=oneshot
 RemainAfterExit=true
-ExecStart=/usr/bin/true
+ExecStart=/bin/true
 ExecStop=/usr/local/lib/backup_client.py
 TimeoutStopSec=infinity
 
