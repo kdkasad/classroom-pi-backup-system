@@ -125,8 +125,11 @@ async def main():
                   file=sys.stderr)
             sys.exit(1)
     else:
-        date = datetime.date.today()
-        print(WARNING_PREFIX, "Using today's date, ", date, file=sys.stderr)
+        today = datetime.date.today()
+        yesterday = today.replace(day=today.day - 1)
+        print(WARNING_PREFIX, "Using yesterday's date,",
+              yesterday, file=sys.stderr)
+        date = yesterday
 
     # Perform checks
     results = await asyncio.gather(
