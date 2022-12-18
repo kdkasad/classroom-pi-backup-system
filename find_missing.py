@@ -16,6 +16,10 @@ import dateutil.parser
 # Borg executable path
 BORG_EXE = '/usr/bin/borg'
 
+# Number of Borg processes to run concurrently.
+# Higher numbers mean higher CPU and memory usage, but faster processing.
+CONCURRENT_BORG_PROCS = 12
+
 # Specify repositories.
 # Will be constructed as REPO_PARENT_PATH/repo for each repo in REPOS_TO_CHECK.
 REPO_PARENT_PATH = os.path.expanduser('~/repos')
@@ -106,6 +110,12 @@ Error details for repository '{repo}':
 """.format(name=type(err).__name__, err=err, repo=repo)
 
 
+async def do_with_sem(sem, func, *args):
+    """Run async function `func' after acquiring Semaphore `sem'."""
+    async with sem:
+        return await func(*args)
+
+
 async def main():
     """Main function"""
 
@@ -132,8 +142,9 @@ async def main():
         date = yesterday
 
     # Perform checks
+    sem = asyncio.Semaphore(CONCURRENT_BORG_PROCS)
     results = await asyncio.gather(
-        *(check_repo_is_missing_backups(repo, date)
+        *(do_with_sem(sem, check_repo_is_missing_backups, repo, date)
           for repo in REPOS_TO_CHECK),
         return_exceptions=True
     )
