@@ -1,3 +1,4 @@
 provision.sh
 client.py
 server/var/lib/backup/config/config_server_settings.env
+server/var/lib/backup/email_notifications.env

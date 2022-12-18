@@ -1,0 +1,13 @@
+[Unit]
+Description=Notify admin of missing Raspberry Pi backups
+Requires=network.target network-online.target
+After=network.target network-online.target
+
+[Service]
+User=backup
+Group=backup
+WorkingDirectory=~
+EnvironmentFile=-/var/lib/backup/email_notifications.env
+Type=oneshot
+ExecStart=~/find_missing.py --email
+TimeoutStartSec=infinity

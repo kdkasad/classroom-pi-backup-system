@@ -1,0 +1,10 @@
+[Unit]
+Description=Timer for notify-missing-backups.service
+
+[Timer]
+Unit=notify-missing-backups.service
+OnCalendar=08:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
