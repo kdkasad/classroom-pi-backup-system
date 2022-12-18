@@ -14,7 +14,7 @@ import sys
 import dateutil.parser
 
 
-### Configure variables below this line ###
+# Configure variables below this line #
 
 # Borg executable path
 BORG_EXE = '/usr/bin/borg'
@@ -32,8 +32,8 @@ REPOS_TO_CHECK = sorted([
 ])
 
 # Email sender (from) and recipients (to).
-EMAIL_SENDER = None # use env
-EMAIL_RECIPIENTS = None # use env
+EMAIL_SENDER = None  # use env
+EMAIL_RECIPIENTS = None  # use env
 
 # Email server host and port.
 # These must correspond to an SMTP over TLS server.
@@ -42,8 +42,8 @@ SMTP_PORT = 465
 SMTP_USE_SSL = True
 SMTP_USERNAME = EMAIL_SENDER
 
-### End configuration section ###
-### Don't change anything below this line ###
+# End configuration section #
+# Don't change anything below this line #
 
 
 ERROR_PREFIX = '\x1b[1;31mError\x1b[m:'
@@ -153,7 +153,8 @@ async def check_repo_is_missing_backups(repo, date):
     repo_path = os.path.join(REPO_PARENT_PATH, repo)
     cmd = [BORG_EXE, '--log-json', 'list', '--json', repo_path]
     proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=PIPE, stderr=PIPE, close_fds=True, preexec_fn=ignore_sigint
+        *cmd, stdout=PIPE, stderr=PIPE,
+        close_fds=True, preexec_fn=ignore_sigint
     )
     stdout, stderr = await proc.communicate()
 
@@ -169,8 +170,10 @@ async def check_repo_is_missing_backups(repo, date):
                     error_messages.append(msg['message'])
             except json.JSONDecodeError:
                 pass  # ignore non-JSON lines
-        raise BorgError('Borg exited with error status:\n' +
-                        '\n'.join('(borg): ' + emsg for emsg in error_messages))
+        raise BorgError(
+            'Borg exited with error status:\n' +
+            '\n'.join('(borg): ' + emsg for emsg in error_messages)
+        )
 
     repo = json.loads(stdout)
     archives = repo['archives']
