@@ -6,6 +6,7 @@ from asyncio.subprocess import PIPE
 import datetime
 import json
 import os
+import signal
 import sys
 
 import dateutil.parser
@@ -74,9 +75,15 @@ async def check_repo_is_missing_backups(repo, date):
         True if the repository is missing backups for the
         given date and False otherwise.
     """
+
+    def ignore_sigint():
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+
     repo_path = os.path.join(REPO_PARENT_PATH, repo)
     cmd = [BORG_EXE, '--log-json', 'list', '--json', repo_path]
-    proc = await asyncio.create_subprocess_exec(*cmd, stdout=PIPE, stderr=PIPE)
+    proc = await asyncio.create_subprocess_exec(
+        *cmd, stdout=PIPE, stderr=PIPE, close_fds=True, preexec_fn=ignore_sigint
+    )
     stdout, stderr = await proc.communicate()
 
     if proc.returncode == 2:
