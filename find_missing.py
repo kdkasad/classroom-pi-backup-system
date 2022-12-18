@@ -7,6 +7,8 @@ import datetime
 import json
 import os
 import signal
+import smtplib
+import ssl
 import sys
 
 import dateutil.parser
@@ -28,6 +30,17 @@ REPOS_TO_CHECK = sorted([
     'A0', 'A9',
     *(x + i for x in 'ABCD' for i in '12345678'),
 ])
+
+# Email sender (from) and recipients (to).
+EMAIL_SENDER = None # use env
+EMAIL_RECIPIENTS = None # use env
+
+# Email server host and port.
+# These must correspond to an SMTP over TLS server.
+SMTP_SERVER = 'smtp.gmail.com'
+SMTP_PORT = 465
+SMTP_USE_SSL = True
+SMTP_USERNAME = EMAIL_SENDER
 
 ### End configuration section ###
 ### Don't change anything below this line ###
@@ -53,14 +66,72 @@ backup repositories:
 """
 
 EMAIL_HEADERS = """\
-From: {sender}
-To: {recipients}
 Subject: Missing Raspberry Pi backups for {date}
 """
 
 
 class BorgError(Exception):
     """Borg error type"""
+
+
+def send_email(message):
+    """Send an email with the given contents"""
+    # Find sender email
+    sender = os.getenv('EMAIL_SENDER') or EMAIL_SENDER
+    if not sender:
+        raise ValueError('Sender email unknown: Environment variable '
+                         'EMAIL_SENDER is not set and no default exists.')
+
+    # Find recipient emails
+    recipients = os.getenv('EMAIL_RECIPIENTS')
+    recipients = [x.strip() for x in recipients.split(',')] \
+        if recipients else EMAIL_RECIPIENTS
+    if not recipients:
+        raise ValueError('Recipient emails unknown: Environment variable '
+                         'EMAIL_RECIPIENTS is not set and no default exists.')
+
+    # Find SMTP username
+    username = os.getenv('SMTP_USERNAME') or SMTP_USERNAME or sender
+    if not username:
+        raise ValueError('SMTP username unknown: Environment variable '
+                         'SMTP_USERNAME is not set and no default exists.')
+
+    # Find SMTP password
+    password = os.getenv('SMTP_PASSWORD')
+    if not password:
+        raise ValueError('SMTP password unknown: Environment variable '
+                         'SMTP_PASSWORD is not set.')
+
+    # Find SMTP server
+    server = os.getenv('SMTP_SERVER') or SMTP_SERVER
+    if not server:
+        raise ValueError('SMTP server unknown: Environment variable '
+                         'SMTP_SERVER is not set and no default exists.')
+
+    # Find SMTP port
+    try:
+        port = int(os.getenv('SMTP_PORT') or SMTP_PORT)
+    except (TypeError, ValueError) as err:
+        raise ValueError(
+            'SMTP port unknown: Environment variable SMTP_PORT is not set and '
+            'no default exists or it is set and invalid.'
+        ) from err
+    try:
+        port = int(port)
+        assert 0 < port < 0x10000
+    except (ValueError, TypeError) as err:
+        raise ValueError('Invalid SMTP port number') from err
+
+    # Find SMTP SSL setting
+    use_ssl = bool(os.getenv('SMTP_USE_SSL') or SMTP_USE_SSL)
+
+    # Send email
+    sslctx = ssl.create_default_context()
+    with smtplib.SMTP_SSL(server, port, context=sslctx) if use_ssl \
+            else smtplib.SMTP(server, port) \
+            as smtp:
+        smtp.login(username, password)
+        smtp.sendmail(sender, recipients, message)
 
 
 async def check_repo_is_missing_backups(repo, date):
@@ -131,6 +202,9 @@ async def main():
     parser.add_argument(
         'date', help='Date for which to check for missing backups', nargs='?'
     )
+    parser.add_argument(
+        '--email', help='Send an email with the results', action='store_true'
+    )
     args = parser.parse_args()
 
     # Create datetime.date object from date string
@@ -193,6 +267,17 @@ async def main():
         )
     print(message)
 
+    if args.email:
+        email = EMAIL_HEADERS.rstrip().format(
+            date=date,
+            missing=' '.join(missing),
+            failed=' '.join(e[0] for e in errors),
+            errors='\n\n'.join(format_error(*e) for e in errors)
+        ) + '\n\n' + message
+        try:
+            send_email(email)
+        except Exception as err:
+            print(ERROR_PREFIX, 'Failed to send email:', err, file=sys.stderr)
 
 if __name__ == '__main__':
     try:
