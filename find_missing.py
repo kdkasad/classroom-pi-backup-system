@@ -20,8 +20,8 @@ BORG_EXE = '/usr/bin/borg'
 # Will be constructed as REPO_PARENT_PATH/repo for each repo in REPOS_TO_CHECK.
 REPO_PARENT_PATH = os.path.expanduser('~/repos')
 REPOS_TO_CHECK = sorted([
-   'A0', 'A9',
-   *(x + i for x in 'ABCD' for i in '12345678'),
+    'A0', 'A9',
+    *(x + i for x in 'ABCD' for i in '12345678'),
 ])
 
 ### End configuration section ###
@@ -30,10 +30,14 @@ REPOS_TO_CHECK = sorted([
 
 ERROR_PREFIX = '\x1b[1;31mError\x1b[m:'
 
-MESSAGE_FORMAT = """\
+MISSING_MESSAGE_FORMAT = """\
 The following Raspberry Pi's did not back up on {date}:
 {missing}
-
+"""
+SUCCESS_MESSAGE_FORMAT = """\
+No missing backups for {date}.
+"""
+FAILED_MESSAGE_FORMAT = """\
 Errors were encountered while attempting to process the following
 backup repositories:
 {failed}
@@ -136,13 +140,30 @@ async def main():
         else:
             errors.append((repo, result))
 
-    # Format response message
-    message = MESSAGE_FORMAT.format(
-        date=date,
-        missing=' '.join(missing),
-        failed=' '.join(e[0] for e in errors),
-        errors='\n\n'.join(format_error(*e) for e in errors)
-    )
+    message = ''
+    if missing:
+        # Format and print response message
+        message += MISSING_MESSAGE_FORMAT.rstrip().format(
+            date=date,
+            missing=' '.join(missing),
+            failed=' '.join(e[0] for e in errors),
+            errors='\n\n'.join(format_error(*e) for e in errors)
+        )
+    else:
+        message += SUCCESS_MESSAGE_FORMAT.rstrip().format(
+            date=date,
+            missing=' '.join(missing),
+            failed=' '.join(e[0] for e in errors),
+            errors='\n\n'.join(format_error(*e) for e in errors)
+        )
+    if errors:
+        message += '\n\n'
+        message += FAILED_MESSAGE_FORMAT.rstrip().format(
+            date=date,
+            missing=' '.join(missing),
+            failed=' '.join(e[0] for e in errors),
+            errors='\n\n'.join(format_error(*e) for e in errors)
+        )
     print(message)
 
 
