@@ -29,6 +29,7 @@ REPOS_TO_CHECK = sorted([
 
 
 ERROR_PREFIX = '\x1b[1;31mError\x1b[m:'
+WARNING_PREFIX = '\x1b[1;33mWarning\x1b[m:'
 
 MISSING_MESSAGE_FORMAT = """\
 The following Raspberry Pi's did not back up on {date}:
@@ -121,6 +122,7 @@ async def main():
             sys.exit(1)
     else:
         date = datetime.date.today()
+        print(WARNING_PREFIX, "Using today's date, ", date, file=sys.stderr)
 
     # Perform checks
     results = await asyncio.gather(
