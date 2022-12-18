@@ -54,6 +54,10 @@ Subject: Missing Raspberry Pi backups for {date}
 """
 
 
+class BorgError(Exception):
+    """Borg error type"""
+
+
 async def check_repo_is_missing_backups(repo, date):
     """
     Checks if a repository is missing backups for a given date.
@@ -83,8 +87,8 @@ async def check_repo_is_missing_backups(repo, date):
                     error_messages.append(msg['message'])
             except json.JSONDecodeError:
                 pass  # ignore non-JSON lines
-        raise ValueError('Borg exited with error status:\n' +
-                         '\n'.join('(borg): ' + emsg for emsg in error_messages))
+        raise BorgError('Borg exited with error status:\n' +
+                        '\n'.join('(borg): ' + emsg for emsg in error_messages))
 
     repo = json.loads(stdout)
     archives = repo['archives']
@@ -96,10 +100,10 @@ async def check_repo_is_missing_backups(repo, date):
 
 
 def format_error(repo, err):
-    return f"""\
+    return """\
 Error details for repository '{repo}':
-{err}
-"""
+{name}: {err}
+""".format(name=type(err).__name__, err=err, repo=repo)
 
 
 async def main():
